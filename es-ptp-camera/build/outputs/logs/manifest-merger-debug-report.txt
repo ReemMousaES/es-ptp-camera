@@ -1,0 +1,20 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml:2:1-4:12
+INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml:2:1-4:12
+	package
+		INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml:2:11-69
+uses-feature#android.hardware.usb.host
+ADDED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml:3:5-62
+	android:name
+		ADDED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml:3:19-59
+uses-sdk
+INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml
+INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/reemmousa/Documents/GitHub/ptp-library/es-ptp-camera/src/main/AndroidManifest.xml
