@@ -104,7 +104,7 @@ Add to your `AndroidManifest.xml`:
 
 ## Attribution
 
-This library is based on the original [PTP library](https://github.com/nicl-assbeck/PTP) by:
+This library is a fork of the original [RemoteYourCam USB](https://github.com/michaelzoech/remoteyourcam-usb) project by:
 
 - Nils Assbeck
 - Guersel Ayaz
