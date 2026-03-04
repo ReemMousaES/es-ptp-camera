@@ -16,19 +16,12 @@ Android library for communicating with digital cameras via USB using the Picture
 
 A complete sample app demonstrating all features is available in the [ptp-sample-app](https://github.com/ReemMousaES/ptp-sample-app) repository.
 
-### Screenshot
-
 <div align="center">
-  <img src="docs/screenshot.jpg" width="300" alt="Sample App Screenshot">
-</div>
 
-### Demo Video
+| Screenshot | Demo |
+|:----------:|:----:|
+| <img src="docs/screenshot.jpg" width="250" alt="Sample App Screenshot"> | <img src="docs/screen_recording.gif" width="250" alt="Live View Demo"> |
 
-<div align="center">
-  <a href="docs/screen_recording.mp4">
-    <img src="docs/screenshot.jpg" width="300" alt="Watch Demo Video">
-  </a>
-  <p>Click to watch the demo video showing live camera feed with Canon EOS R6</p>
 </div>
 
 ## Installation
