@@ -1,91 +1,211 @@
-[![](https://jitpack.io/v/ReemMousaES/es-ptp-camera.svg)](https://jitpack.io/#ReemMousaES/es-ptp-camera)
+[![](https://jitpack.io/v/ReemMousaES/es-ptp-camera.svg)](https://jitpack.io/#/ReemMousaES/es-ptp-camera)
 # ES PTP Camera
 
 Android library for communicating with digital cameras via USB using the Picture Transfer Protocol (PTP).
 
 ## Features
 
+- **Canon EOS Support**: Remote control, live view streaming, capture, bulb mode
 - **Nikon Camera Support**: Remote control, live view, capture, focus, settings
-- **Canon EOS Support**: Remote control, live view, capture, bulb mode
 - **USB Host API**: Direct USB communication with cameras
-- **Live View Streaming**: Real-time preview from supported cameras
+- **Live View Streaming**: Real-time preview from supported cameras with double-buffering for smooth playback
 - **Camera Settings**: Control ISO, aperture, shutter speed, white balance, and more
+- **Image Retrieval**: Automatic thumbnail and full image retrieval after capture
+
+## Sample App
+
+A complete sample app demonstrating all features is available in the [ptp-sample-app](https://github.com/ReemMousaES/ptp-sample-app) repository.
+
+### Screenshot
+
+<!-- Add your screenshot here -->
+<div align="center">
+  <img src="docs/screenshot.png" width="300" alt="Sample App Screenshot">
+</div>
+
+### Demo Video
+
+<!-- Add your video here -->
+<div align="center">
+  <a href="docs/demo.mp4">
+    <img src="docs/screenshot.png" width="300" alt="Watch Demo Video">
+  </a>
+  <p>Click to watch the demo video showing live camera feed</p>
+</div>
 
 ## Installation
 
-Add JitPack repository to your project's `build.gradle` (project level):
+Add JitPack repository to your project's `settings.gradle.kts`:
 
 ```kotlin
-allprojects {
+dependencyResolutionManagement {
     repositories {
+        google()
+        mavenCentral()
         maven { url = uri("https://jitpack.io") }
     }
 }
 ```
 
-Add dependency to your app's `build.gradle`:
+Add dependency to your app's `build.gradle.kts`:
 
 ```kotlin
-implementation("com.github.YOUR_USERNAME:es-ptp-camera:1.0.0")
+implementation("com.github.ReemMousaES:es-ptp-camera:v1.0.3")
 ```
 
 ## Usage
 
-### Initialize PTP Service
+### 1. Add USB Permission to AndroidManifest.xml
+
+```xml
+<uses-feature android:name="android.hardware.usb.host" android:required="true" />
+```
+
+### 2. Initialize PTP Service
 
 ```kotlin
-val ptpService = PtpUsbService(context)
-ptpService.addPtpServiceListener(object : PtpService.PtpServiceListener {
-    override fun onCameraConnected(camera: Camera) {
+import com.extremesolution.esptpcamera.PtpService
+import com.extremesolution.esptpcamera.Camera
+import com.extremesolution.esptpcamera.EosCamera
+
+private var ptpService: PtpService? = null
+private var connectedCamera: Camera? = null
+
+ptpService = PtpService.Singleton.getInstance(context)
+ptpService?.setCameraListener(object : Camera.CameraListener {
+    override fun onCameraStarted(camera: Camera) {
+        connectedCamera = camera
         // Camera connected and ready
     }
 
-    override fun onCameraDisconnected() {
+    override fun onCameraStopped(camera: Camera) {
+        connectedCamera = null
         // Camera disconnected
     }
 
-    override fun onError(error: PtpError) {
+    override fun onError(message: String) {
         // Handle error
     }
-})
-ptpService.startService()
-```
 
-### Capture Photo
-
-```kotlin
-camera.initiateCapture(object : PtpAction.Callback {
-    override fun onSuccess() {
-        // Capture successful
+    override fun onObjectAdded(handle: Int, format: Int) {
+        // New image added - retrieve it
+        camera.retrieveImageInfo(listener, handle)
     }
-
-    override fun onError(error: PtpError) {
-        // Handle error
-    }
+    
+    // ... other callbacks
 })
 ```
 
-### Live View
+### 3. Request USB Permission
 
 ```kotlin
-// Start live view (Nikon)
-camera as NikonCamera
-camera.startLiveView()
+val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+val permissionIntent = PendingIntent.getBroadcast(
+    context, 0, 
+    Intent(ACTION_USB_PERMISSION), 
+    PendingIntent.FLAG_IMMUTABLE
+)
 
-// Get live view image
-camera.getLiveViewImage { data ->
-    // Process live view frame
+// Find and request permission for PTP camera device
+usbManager.deviceList.values.find { /* check for PTP interface */ }?.let { device ->
+    usbManager.requestPermission(device, permissionIntent)
+}
+```
+
+### 4. Start PTP Service After Permission Granted
+
+```kotlin
+ptpService?.initialize(context, intent, true)
+```
+
+### 5. Live View (Canon EOS)
+
+```kotlin
+val camera = connectedCamera as? EosCamera ?: return
+
+// Start live view
+camera.setLiveView(true)
+
+// Request live view frames with double-buffering for smooth playback
+private var currentLiveViewData: LiveViewData? = null
+private var previousLiveViewData: LiveViewData? = null
+
+override fun onLiveViewStarted() {
+    currentLiveViewData = null
+    previousLiveViewData = null
+    camera.getLiveViewPicture(null) // Start polling
+}
+
+override fun onLiveViewData(data: LiveViewData?) {
+    if (!isLiveViewActive) return
+    
+    if (data == null) {
+        camera.getLiveViewPicture(previousLiveViewData)
+        return
+    }
+    
+    // Display the frame
+    data.bitmap?.let { imageView.setImageBitmap(it) }
+    
+    // Swap buffers and request next frame
+    previousLiveViewData = currentLiveViewData
+    currentLiveViewData = data
+    camera.getLiveViewPicture(previousLiveViewData)
 }
 
 // Stop live view
-camera.stopLiveView()
+camera.setLiveView(false)
 ```
 
-### Get Device Properties
+### 6. Capture Photo
 
 ```kotlin
-camera.getDevicePropValue(PtpConstants.DEVICE_PROP_EXPOSURE_PROGRAM) { value ->
-    // Handle property value
+camera.capture()
+```
+
+### 7. Retrieve Captured Image
+
+```kotlin
+override fun onObjectAdded(handle: Int, format: Int) {
+    // Retrieve thumbnail first
+    camera.retrieveImageInfo(object : Camera.RetrieveImageInfoListener {
+        override fun onImageInfoRetrieved(
+            objectHandle: Int,
+            objectInfo: ObjectInfo?,
+            thumbnail: Bitmap?
+        ) {
+            // Display thumbnail
+            thumbnail?.let { showThumbnail(it) }
+            
+            // Optionally retrieve full image
+            camera.retrieveImage(object : Camera.RetrieveImageListener {
+                override fun onImageRetrieved(
+                    objHandle: Int,
+                    image: Bitmap?,
+                    orientation: Int
+                ) {
+                    // Display full image
+                    image?.let { showFullImage(it) }
+                }
+            }, objectHandle)
+        }
+    }, handle)
+}
+```
+
+### 8. Handle Camera Properties
+
+```kotlin
+override fun onPropertyChanged(property: Int, value: Int) {
+    when (property) {
+        Camera.Property.IsoSpeed -> // Handle ISO change
+        Camera.Property.FNumber -> // Handle aperture change
+        Camera.Property.ShutterSpeed -> // Handle shutter speed change
+    }
+}
+
+override fun onPropertyDescChanged(property: Int, values: IntArray) {
+    // Available values for property changed
 }
 ```
 
@@ -94,14 +214,38 @@ camera.getDevicePropValue(PtpConstants.DEVICE_PROP_EXPOSURE_PROGRAM) { value ->
 - Min SDK: 24 (Android 7.0)
 - Target SDK: 35
 - Android device with USB Host support
+- USB OTG cable for connecting camera
 
-## Permissions
+## Supported Cameras
 
-Add to your `AndroidManifest.xml`:
+### Canon EOS
+- EOS R Series (R5, R6, R6 Mark II, etc.)
+- EOS 5D Series
+- EOS 6D Series
+- EOS 7D Series
+- EOS 80D, 90D
+- And more...
 
-```xml
-<uses-feature android:name="android.hardware.usb.host" />
-```
+### Nikon
+- D Series (D850, D750, D500, etc.)
+- Z Series (Z6, Z7, Z6II, Z7II, etc.)
+
+## Troubleshooting
+
+### Camera not detected
+- Ensure USB OTG cable is properly connected
+- Check that your Android device supports USB Host mode
+- Try reconnecting the USB cable
+
+### Live view not working
+- Make sure camera is in photo mode (not video or playback)
+- Check if live view is enabled on camera LCD
+- Wait a few seconds after connecting before starting live view
+
+### Capture not working
+- Ensure camera is not in playback mode
+- Check if memory card is inserted
+- Verify camera is not busy with other operations
 
 ## Attribution
 
@@ -121,6 +265,21 @@ Copyright 2024 ExtremeSolution
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
 See [LICENSE](LICENSE) for full license text.
+
+## Links
+
+- [Sample App Repository](https://github.com/ReemMousaES/ptp-sample-app)
+- [JitPack Page](https://jitpack.io/#/ReemMousaES/es-ptp-camera)
+- [Issue Tracker](https://github.com/ReemMousaES/es-ptp-camera/issues)
