@@ -268,9 +268,3 @@ limitations under the License.
 ```
 
 See [LICENSE](LICENSE) for full license text.
-
-## Links
-
-- [Sample App Repository](https://github.com/ReemMousaES/ptp-sample-app)
-- [JitPack Page](https://jitpack.io/#/ReemMousaES/es-ptp-camera)
-- [Issue Tracker](https://github.com/ReemMousaES/es-ptp-camera/issues)
