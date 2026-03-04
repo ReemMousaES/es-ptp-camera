@@ -54,13 +54,7 @@ public class EosSetLiveViewAction implements PtpAction {
         int outputDevice = camera.getPtpProperty(Property.EosEvfOutputDevice);
 
         if (enabled) {
-            /*
-             - this line is commented as it was closing the live view
-             it need to be tested over multiple cameras to be sure that it has no regrissions.
-             - before commenting this line when the event screen start the camera view shot down
-             the user is not able to take photos except after switching to video mode and back.
-            */
-            //outputDevice |= EosConstants.EvfOutputDevice.PC;
+            outputDevice |= EosConstants.EvfOutputDevice.PC;
         } else {
             outputDevice &= ~EosConstants.EvfOutputDevice.PC;
         }
