@@ -18,19 +18,17 @@ A complete sample app demonstrating all features is available in the [ptp-sample
 
 ### Screenshot
 
-<!-- Add your screenshot here -->
 <div align="center">
-  <img src="docs/screenshot.png" width="300" alt="Sample App Screenshot">
+  <img src="docs/screenshot.jpg" width="300" alt="Sample App Screenshot">
 </div>
 
 ### Demo Video
 
-<!-- Add your video here -->
 <div align="center">
-  <a href="docs/demo.mp4">
-    <img src="docs/screenshot.png" width="300" alt="Watch Demo Video">
+  <a href="docs/screen_recording.mp4">
+    <img src="docs/screenshot.jpg" width="300" alt="Watch Demo Video">
   </a>
-  <p>Click to watch the demo video showing live camera feed</p>
+  <p>Click to watch the demo video showing live camera feed with Canon EOS R6</p>
 </div>
 
 ## Installation
